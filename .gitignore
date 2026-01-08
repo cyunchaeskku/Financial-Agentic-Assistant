@@ -1,2 +1,6 @@
 .env
 .venv/
+READMD.md
+gemini_cli_manual.txt
+.DS_Store
+**/.DS_Store

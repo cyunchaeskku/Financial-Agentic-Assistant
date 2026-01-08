@@ -1,0 +1,6 @@
+requests
+pandas
+zipfile36
+bs4
+lxml
+python-dotenv
