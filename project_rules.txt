@@ -1,0 +1,39 @@
+# Financial Agentic Assistant - 프로젝트 작업 규칙 (Project Rules)
+
+## 1. 코드 주석 작성 가이드 (Comment Style)
+*   **전문가 톤 (Professional Tone):**
+    *   AI 특유의 대화체나 과도한 친절함 지양.
+    *   IT 전문가가 작성한 것처럼 건조하고(Dry), 간결하며(Concise), 핵심만(To-the-point) 기술할 것.
+    *   사용자에게 말을 거는 듯한 문체 금지.
+*   **언어 (Language):**
+    *   기본 언어: **한국어**
+    *   예외: 영어가 기술적 개념 전달에 더 명확한 경우에만 영어 사용 허용.
+*   **구조 (Structure):**
+    *   코드를 처음 보는 사람도 로직 흐름을 이해할 수 있도록 주요 로직 블록마다 명확한 주석 작성.
+
+## 2. 형상 관리 및 배포 (Git & Deployment)
+*   **Push 정책:**
+    *   사용자의 명시적인 명령이 있을 때만 `git push` 수행.
+    *   "푸시할까요?"라고 먼저 묻지 말 것.
+
+## 3. 기술 스택 (Tech Stack)
+
+*   **데이터베이스:** PostgreSQL (Docker + pgvector)
+
+*   **데이터 파이프라인:** GitHub Actions (Automated workflow)
+
+*   **언어:** Python 3.10+
+
+
+
+## 4. 프로젝트 철학 및 품질 (Project Philosophy & Quality)
+*   **엔지니어링 역량 증명:** 
+    *   모든 작업(코드, 문서, 아키텍처 설계)은 제3자(특히 면접관)가 보았을 때 "데이터 파이프라이닝의 구조와 원리를 정확히 이해하고 구현했다"고 판단할 수 있는 수준의 전문성을 유지할 것.
+    *   단순 기능 구현을 넘어 확장성, 재사용성(Replayability), 데이터 무결성을 고려한 설계를 지향할 것.
+*   **철저한 기록 관리:**
+    *   개발 과정의 의사결정, 기술적 도전, 아키텍처 변경 사항을 개발 일지(`development_log.md`) 및 README 등에 철저하게 기록하여 프로젝트의 히스토리를 투명하게 관리할 것.
+
+
+## 5. Git 관리
+*   **Github 관리:**
+    *   많은 작업이 진행되면 github에 push하라고, commit 관리하라고 사용자에게 말할 것

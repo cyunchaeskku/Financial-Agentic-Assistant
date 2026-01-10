@@ -1,6 +1,22 @@
+# Environments
 .env
 .venv/
-READMD.md
-gemini_cli_manual.txt
+__pycache__/
+*.pyc
+
+# IDEs
 .DS_Store
 **/.DS_Store
+.vscode/
+.idea/
+
+# Data & Logs
+pgdata/
+backend.log
+data/storage/dart/*.csv
+data/storage/raw/dart/*.csv
+data/storage/processed/dart/*.csv
+node_modules/
+
+# Manuals (Optional, keeping as ignored if strictly for CLI)
+gemini_cli_manual.txt
