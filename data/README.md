@@ -8,14 +8,6 @@
 
 우리는 유연한 데이터 처리를 위해 수집(Ingestion)과 가공(Processing)을 명확히 분리하고, 원천 데이터(Raw Data)를 데이터베이스에 불변(Immutable)에 가까운 형태로 보존하는 전략을 취합니다.
 
-```mermaid
-graph LR
-    A[DART API] -->|Extract| B(Collectors)
-    B -->|Load (Upsert)| C[(DB: dart_dividends_raw)]
-    C -->|Read| D(Processors)
-    D -->|Transform (Pivot/Clean)| E[(DB: dart_dividends)]
-    E -->|Serve| F[Analysis Agent / BI]
-```
 
 ### 1.1. 설계 원칙 (Design Principles)
 1.  **Raw Data 보존 (Replayability):** 가공되지 않은 원천 데이터를 그대로 저장함으로써, 추후 비즈니스 로직이나 전처리 알고리즘이 변경되더라도 언제든지 원본으로부터 다시 데이터를 생성(Replay)할 수 있습니다.

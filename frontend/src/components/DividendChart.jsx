@@ -1,18 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Plot from 'react-plotly.js';
 import axios from 'axios';
+import Select from 'react-select';
 
 const DividendChart = () => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [selectedOptions, setSelectedOptions] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Backend API URL
+                // Backend API URL (전체 데이터를 가져와서 프론트에서 필터링)
                 const response = await axios.get('http://localhost:8000/api/dividends');
                 setData(response.data);
+                
+                // 고유 기업 목록 추출
+                const uniqueCompanies = [...new Set(response.data.map(item => item.corp_name))];
+                
+                // 초기 선택값 설정 (예: 삼성전자)
+                if (uniqueCompanies.includes('삼성전자')) {
+                    setSelectedOptions([{ value: '삼성전자', label: '삼성전자' }]);
+                } else if (uniqueCompanies.length > 0) {
+                    setSelectedOptions([{ value: uniqueCompanies[0], label: uniqueCompanies[0] }]);
+                }
+
                 setLoading(false);
             } catch (err) {
                 console.error("Error fetching dividend data:", err);
@@ -24,30 +37,28 @@ const DividendChart = () => {
         fetchData();
     }, []);
 
+    // 드롭다운 옵션 생성
+    const options = useMemo(() => {
+        const uniqueCompanies = [...new Set(data.map(item => item.corp_name))];
+        return uniqueCompanies.map(name => ({ value: name, label: name }));
+    }, [data]);
+
     if (loading) return <div>Loading chart...</div>;
     if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
-    // Process data for Plotly
     // 1. 모든 데이터에서 고유한 X축 값(기간) 추출 및 논리적 정렬
-    // 이것이 없으면 데이터 입력 순서에 따라 X축이 뒤죽박죽 섞일 수 있습니다. (예: 삼성 2024 뒤에 LG 2018이 오면 꼬임)
     const allPeriods = [...new Set(data.map(d => `${d.year} ${d.reprt_code}`))];
-    
     allPeriods.sort((a, b) => {
         const [yearA, quarterA] = a.split(' ');
         const [yearB, quarterB] = b.split(' ');
-        
-        if (yearA !== yearB) {
-            return parseInt(yearA) - parseInt(yearB);
-        }
-        
-        // 분기 문자열(1Q, 2Q...) 비교
+        if (yearA !== yearB) return parseInt(yearA) - parseInt(yearB);
         return quarterA.localeCompare(quarterB);
     });
 
-    // 2. 기업별 데이터 분리
-    const companies = [...new Set(data.map(item => item.corp_name))];
+    // 2. 선택된 기업의 데이터만 필터링하여 Plotly Trace 생성
+    const selectedNames = selectedOptions ? selectedOptions.map(o => o.value) : [];
     
-    const traces = companies.map(company => {
+    const traces = selectedNames.map(company => {
         const companyData = data.filter(item => item.corp_name === company);
 
         return {
@@ -60,8 +71,20 @@ const DividendChart = () => {
     });
 
     return (
-        <div style={{ width: '100%', height: '100%' }}>
-            <h2>배당 수익률 추이</h2>
+        <div style={{ padding: '20px' }}>
+            <h2>Dividend Trend Analysis (Yield)</h2>
+            
+            <div style={{ marginBottom: '20px', width: '500px' }}>
+                <label>Select Companies to Compare:</label>
+                <Select
+                    isMulti
+                    options={options}
+                    value={selectedOptions}
+                    onChange={setSelectedOptions}
+                    placeholder="Search and select companies..."
+                />
+            </div>
+
             <Plot
                 data={traces}
                 layout={{
@@ -70,12 +93,13 @@ const DividendChart = () => {
                     title: 'Dividend Yield Trend by Company',
                     xaxis: { 
                         title: 'Period',
-                        type: 'category', // 명시적으로 범주형 축 선언
-                        categoryorder: 'array', // 순서 강제
-                        categoryarray: allPeriods // 정렬된 기간 리스트 적용
+                        type: 'category',
+                        categoryorder: 'array',
+                        categoryarray: allPeriods
                     },
                     yaxis: { title: 'Yield (%)' },
-                    showlegend: true
+                    showlegend: true,
+                    margin: { t: 50, b: 100, l: 50, r: 50 }
                 }}
                 config={{ responsive: true }}
             />
