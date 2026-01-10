@@ -53,6 +53,22 @@
 ## 3. 디렉토리 구조 (Directory Structure)
 
 *   `collectors/`: 외부 소스로부터 데이터를 가져오는 Ingestion 스크립트 모음.
+    *   `dart/`: DART API 연동 스크립트.
+    *   `crawler/`: NAVER 뉴스 검색 및 본문 수집 스크립트.
 *   `processors/`: Raw 데이터를 가공하여 Mart 테이블로 이관하는 전처리 스크립트 모음.
 *   `schema/`: SQLAlchemy 기반의 DB 스키마(Model) 정의 파일 (`db_models.py`).
-*   `storage/`: (Legacy) 파일 기반 저장소. 현재는 DB 중심 아키텍처로 전환되어 백업 용도로 사용됩니다.
+*   `storage/`: (Legacy) 파일 기반 저장소. 현재는 DB 중심 아키텍처로 전환되어 백업 용도 및 크롤링 결과 임시 저장소로 활용됩니다.
+
+---
+
+## 4. 비정형 데이터 수집 (Crawler)
+
+금융 어시스턴트의 분석 범위를 넓히기 위해 정형 데이터(공시) 외에도 뉴스 기사와 같은 비정형 데이터를 수집합니다.
+
+*   **Source:** NAVER News (via Search API)
+*   **Target:** 특정 기업(키워드) 관련 최신 기사 본문
+*   **Workflow:**
+    1.  네이버 검색 API를 통한 뉴스 메타데이터 수집.
+    2.  네이버 뉴스 호스팅 링크(`n.news.naver.com`) 대상 본문 텍스트 크롤링.
+    3.  수집된 데이터를 `data/storage/raw/crawler/`에 JSON 형태로 저장.
+*   **Role in Project:** 향후 RAG(Retrieval-Augmented Generation) 파이프라인의 원천 데이터로 사용되어, 기업의 정량적 지표(배당 등)와 정성적 뉴스 문맥을 결합한 분석을 가능케 합니다.

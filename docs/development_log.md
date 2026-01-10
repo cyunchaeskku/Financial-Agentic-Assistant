@@ -125,3 +125,13 @@
 *   **작업 내용**:
     *   기존 `frontend/` 디렉토리 삭제 및 `create-react-app` 기반 프로젝트 초기화.
     *   `react-plotly.js` 등 현대적인 라이브러리와의 통합을 위해 React 기반 환경 구축 완료.
+
+## [2026-01-10] - 외부 뉴스 데이터 수집 기능 구현
+
+### 1. NAVER 뉴스 통합 크롤러 구축
+*   **작업 내용**: 특정 기업의 최신 뉴스 기사를 수집하여 향후 분석(RAG) 및 감성 분석에 활용할 수 있는 기반 마련.
+*   **구현 상세**:
+    *   **통합 스크립트 개발**: `data/collectors/crawler/naver_news_crawler.py`
+        1.  **검색 API 연동**: NAVER Search API를 사용하여 기업명 관련 뉴스 메타데이터(제목, 링크, 요약, 발행일) 확보.
+        2.  **본문 크롤링**: `BeautifulSoup`을 사용하여 네이버 뉴스 호스팅 기사(`n.news.naver.com`)의 본문 텍스트를 자동으로 추출하는 기능 구현.
+    *   **저장 포맷**: 수집된 메타데이터와 본문을 결합하여 `data/storage/raw/crawler/` 폴더에 JSON 파일로 저장.
