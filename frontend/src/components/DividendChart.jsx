@@ -71,10 +71,10 @@ const DividendChart = () => {
     });
 
     return (
-        <div style={{ padding: '20px' }}>
+        <div style={{ padding: '20px', height: '100%', display: 'flex', flexDirection: 'column' }}>
             <h2>Dividend Trend Analysis (Yield)</h2>
             
-            <div style={{ marginBottom: '20px', width: '500px' }}>
+            <div style={{ marginBottom: '20px', width: '100%' }}>
                 <label>Select Companies to Compare:</label>
                 <Select
                     isMulti
@@ -85,24 +85,27 @@ const DividendChart = () => {
                 />
             </div>
 
-            <Plot
-                data={traces}
-                layout={{
-                    width: 1000,
-                    height: 600,
-                    title: 'Dividend Yield Trend by Company',
-                    xaxis: { 
-                        title: 'Period',
-                        type: 'category',
-                        categoryorder: 'array',
-                        categoryarray: allPeriods
-                    },
-                    yaxis: { title: 'Yield (%)' },
-                    showlegend: true,
-                    margin: { t: 50, b: 100, l: 50, r: 50 }
-                }}
-                config={{ responsive: true }}
-            />
+            <div style={{ flex: 1, minHeight: 0 }}>
+                <Plot
+                    data={traces}
+                    layout={{
+                        autosize: true,
+                        title: 'Dividend Yield Trend by Company',
+                        xaxis: { 
+                            title: 'Period',
+                            type: 'category',
+                            categoryorder: 'array',
+                            categoryarray: allPeriods
+                        },
+                        yaxis: { title: 'Yield (%)' },
+                        showlegend: true,
+                        margin: { t: 50, b: 50, l: 50, r: 50 }
+                    }}
+                    useResizeHandler={true}
+                    style={{ width: '100%', height: '100%' }}
+                    config={{ responsive: true }}
+                />
+            </div>
         </div>
     );
 };

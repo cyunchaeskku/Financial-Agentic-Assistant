@@ -50,9 +50,9 @@ def run_command(cmd_list, description):
     try:
         # subprocess.run을 사용하여 스크립트 실행
         result = subprocess.run(cmd_list, check=True, text=True, capture_output=True)
-        print(f"✅ Success: {result.stdout.strip().splitlines()[-1] if result.stdout else 'Completed'}") # 마지막 줄만 출력해서 깔끔하게
+        print(f"Success: {result.stdout.strip().splitlines()[-1] if result.stdout else 'Completed'}") # 마지막 줄만 출력해서 깔끔하게
     except subprocess.CalledProcessError as e:
-        print(f"❌ Failed: {e.stderr.strip()}")
+        print(f"Failed: {e.stderr.strip()}")
 
 def execute_quarterly_strategy(config, args):
     """분기별 보고서(1Q~4Q)를 모두 순회하며 수집하는 전략"""
@@ -85,11 +85,11 @@ def main():
     # Task 설정 로드
     config = PIPELINE_REGISTRY.get(args.task)
     if not config:
-        print(f"❌ Error: Unknown task '{args.task}'")
+        print(f"Error: Unknown task '{args.task}'")
         sys.exit(1)
 
-    print(f"🚀 Starting Pipeline: [{args.task.upper()}] for {args.corp_code} ({args.year})")
-    print(f"ℹ️  Description: {config['description']}")
+    print(f"Starting Pipeline: [{args.task.upper()}] for {args.corp_code} ({args.year})")
+    print(f"Description: {config['description']}")
     print("=" * 60)
 
     # 1. Extraction & Loading (Collect)
@@ -115,7 +115,7 @@ def main():
     run_command(cmd, "Transforming & Loading to Mart")
 
     print("=" * 60)
-    print("🎉 Pipeline Completed Successfully.")
+    print("Pipeline Completed Successfully.")
 
 if __name__ == "__main__":
     main()

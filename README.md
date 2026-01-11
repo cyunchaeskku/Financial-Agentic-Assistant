@@ -1,6 +1,6 @@
 # Financial Agentic Assistant
 
-> 금융 오픈 데이터 기반 고객 응대 및 내부 업무 효율화를 위한 AX(AI Transformation) 챗봇 프로젝트
+> 금융 오픈 데이터 기반 고객 응대 및 내부 업무 효율화를 위한 AX(AI Transformation) 챗봇 및 업무 비서 프로젝트
 
 ---
 
@@ -89,6 +89,7 @@ Phase 1의 목적은 **금융 고객이 스스로 금융상품 및 제도를 이
 * **Vector DB**: PostgreSQL + pgvector
 * **Backend**: FastAPI
 * **Frontend**: React + Plotly.js
+* **Data Integration**: RESTful API (DART, Naver), Web Scraping (News Content)
 * **Parsing**: PyMuPDF, pdfminer
 * **Storage**: PostgreSQL (메타데이터)
 * **Docker**: FastAPI 백엔드, PostgreSQL/pgvector DB를 컨테이너화하여 개발-배포 환경 일관성을 유지하고 의존성을 관리합니다.

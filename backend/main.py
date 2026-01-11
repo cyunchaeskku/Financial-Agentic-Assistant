@@ -1,18 +1,31 @@
-import os
-import sys
-from typing import List, Optional
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, text
 import pandas as pd
 import numpy as np
+import os
+import sys
+from typing import List, Optional
 from dotenv import load_dotenv
+from pydantic import BaseModel
+from openai import OpenAI
 
 # Load environment variables from parent directory
 env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
 load_dotenv(dotenv_path=env_path)
 
 app = FastAPI(title="Financial Agent API")
+
+# OpenAI Client Initialization
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+class ChatRequest(BaseModel):
+    messages: List[ChatMessage]
 
 # CORS configuration
 origins = [
@@ -117,6 +130,27 @@ def get_dividends(corp_code: Optional[str] = None, stock_knd: str = "보통주")
     except Exception as e:
         print(f"Error fetching data: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/chat")
+async def chat(request: ChatRequest):
+    """
+    OpenAI API를 사용하여 챗봇 응답을 스트리밍으로 생성합니다.
+    """
+    def generate():
+        try:
+            stream = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": m.role, "content": m.content} for m in request.messages],
+                stream=True
+            )
+            for chunk in stream:
+                if chunk.choices[0].delta.content is not None:
+                    yield chunk.choices[0].delta.content
+        except Exception as e:
+            print(f"Chat Stream Error: {e}")
+            yield f"Error: {str(e)}"
+
+    return StreamingResponse(generate(), media_type="text/event-stream")
 
 if __name__ == "__main__":
     import uvicorn

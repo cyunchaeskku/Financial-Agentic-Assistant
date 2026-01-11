@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 from tqdm import tqdm
 import time
+import argparse
 
 # Load environment variables explicitly from project root
 base_dir = Path(__file__).resolve().parent.parent.parent.parent
@@ -83,12 +84,12 @@ def get_news_content(url):
         print(f"Error scraping {url}: {e}")
         return None
 
-def crawl_naver_news(keyword, display=10):
+def crawl_naver_news(keyword, display=10, sort='sim'):
     """
     검색부터 본문 수집까지 전체 과정을 수행합니다.
     """
-    print(f"Searching news for: {keyword}...")
-    search_result = get_news_list(keyword, display=display)
+    print(f"Searching news for: {keyword} (display={display}, sort={sort})...")
+    search_result = get_news_list(keyword, display=display, sort=sort)
     
     if not search_result or 'items' not in search_result:
         print("No results found.")
@@ -108,10 +109,7 @@ def crawl_naver_news(keyword, display=10):
                 collected_data.append(item)
                 time.sleep(0.5)  # 요청 간 딜레이
         else:
-            # 네이버 링크가 없으면 본문 없이 저장하거나 제외 (정책에 따라 결정)
-            # 여기서는 제외하지 않고 content를 null로 두거나 제외할 수 있음
-            # 일단 본문이 없으면 수집 목적에 부합하지 않으므로 제외하는 로직도 가능하나,
-            # 제목/링크라도 남기기 위해 포함시킬 수도 있음. 여기서는 포함시킴.
+            # 네이버 링크가 없으면 본문 없이 저장
             item['content'] = None
             collected_data.append(item)
             
@@ -128,8 +126,15 @@ def save_to_json(data, filename):
     print(f"Data saved to {save_path}")
 
 if __name__ == "__main__":
-    target_keyword = "삼성전자"
-    result = crawl_naver_news(target_keyword, display=5)
+    parser = argparse.ArgumentParser(description='NAVER News Crawler')
+    parser.add_argument('--keyword', type=str, default='삼성전자', help='Search keyword for news')
+    parser.add_argument('--display', type=int, default=10, help='Number of articles to crawl (max 100)')
+    parser.add_argument('--sort', type=str, default='sim', choices=['sim', 'date'], help='Sort order: sim (similarity) or date (date)')
+    
+    args = parser.parse_args()
+    
+    result = crawl_naver_news(args.keyword, display=args.display, sort=args.sort)
     
     if result:
-        save_to_json(result, f"naver_news_{target_keyword}.json")
+        save_to_json(result, f"naver_news_{args.keyword}.json")
+

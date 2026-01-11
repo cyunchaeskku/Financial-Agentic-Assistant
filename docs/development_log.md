@@ -135,3 +135,18 @@
         1.  **검색 API 연동**: NAVER Search API를 사용하여 기업명 관련 뉴스 메타데이터(제목, 링크, 요약, 발행일) 확보.
         2.  **본문 크롤링**: `BeautifulSoup`을 사용하여 네이버 뉴스 호스팅 기사(`n.news.naver.com`)의 본문 텍스트를 자동으로 추출하는 기능 구현.
     *   **저장 포맷**: 수집된 메타데이터와 본문을 결합하여 `data/storage/raw/crawler/` 폴더에 JSON 파일로 저장.
+
+## [2026-01-11] - OpenAI 챗봇 통합 및 대시보드 UI 고도화
+
+### 1. AI 챗봇 기능 구현 (OpenAI Integration)
+*   **작업 내용**: 사용자와 실시간으로 대화 가능한 AI 챗봇을 백엔드 및 프론트엔드에 통합.
+*   **기술적 세부사항**:
+    *   **Backend**: FastAPI의 `StreamingResponse`를 활용하여 OpenAI API의 응답을 실시간으로 클라이언트에 전달하는 스트리밍 엔진 구축.
+    *   **Frontend**: `fetch` API 및 `TextDecoder`를 사용하여 실시간 응답 조각(Chunk)을 수신하고, React의 불변성 원칙을 준수하며 UI에 실시간 반영.
+    *   **model**: `gpt-4o-mini` 모델 채택.
+
+### 2. 대시보드 레이아웃 및 UX 리팩토링
+*   **작업 내용**: 데이터 시각화 차트와 챗봇을 한 화면에서 유기적으로 활용할 수 있도록 2단 대시보드 레이아웃 구축.
+*   **구현 상세**:
+    *   **Responsive Chart**: Plotly 차트의 고정 크기(Hard-coded size)를 제거하고 `useResizeHandler`를 적용하여 부모 컨테이너 크기에 맞춰 자동 조절되도록 개선.
+    *   **Visual Refinement**: 채팅 버블 정렬(좌측 정렬), 텍스트 반복 출력 버그(State Mutation 이슈) 해결 등 전반적인 인터페이스 품질 향상.
