@@ -150,3 +150,12 @@
 *   **구현 상세**:
     *   **Responsive Chart**: Plotly 차트의 고정 크기(Hard-coded size)를 제거하고 `useResizeHandler`를 적용하여 부모 컨테이너 크기에 맞춰 자동 조절되도록 개선.
     *   **Visual Refinement**: 채팅 버블 정렬(좌측 정렬), 텍스트 반복 출력 버그(State Mutation 이슈) 해결 등 전반적인 인터페이스 품질 향상.
+
+### 3. 실시간 뉴스 검색 및 분석 UI 구축
+*   **작업 내용**: 특정 기업의 최신 뉴스를 실시간으로 검색하고 분석할 수 있는 전용 페이지 및 컴포넌트 구현.
+*   **구현 상세**:
+    *   **Crawler 리팩토링**: `naver_news_crawler.py`를 파일 저장 방식에서 데이터 반환(Module) 방식으로 변경하고, 실시간성 확보를 위해 본문 크롤링 선택 옵션 및 Timeout(5s) 추가.
+    *   **Backend API**: 실시간 뉴스 데이터를 프론트엔드에 제공하는 `GET /api/news` 엔드포인트 신설 (기본 3건 반환).
+    *   **Frontend UI**: `NewsAnalysis.jsx` 컴포넌트 개발. [입력창 + 확인 버튼] 인터페이스와 뉴스 카드 형태의 스크롤 가능한 리스트 구현.
+    *   **Routing**: `react-router-dom`을 도입하여 `/dashboard`와 `/news` 경로를 분리하고 통합 네비게이션 구축.
+    *   **Error Handling**: 네트워크 지연 및 검색 결과 부재 시 사용자에게 명확한 피드백을 제공하는 Fallback UI 로직 강화.

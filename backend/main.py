@@ -11,6 +11,10 @@ from dotenv import load_dotenv
 from pydantic import BaseModel
 from openai import OpenAI
 
+# Add project root to sys.path to import modules from 'data'
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from data.collectors.crawler.naver_news_crawler import crawl_naver_news
+
 # Load environment variables from parent directory
 env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
 load_dotenv(dotenv_path=env_path)
@@ -151,6 +155,21 @@ async def chat(request: ChatRequest):
             yield f"Error: {str(e)}"
 
     return StreamingResponse(generate(), media_type="text/event-stream")
+
+@app.get("/api/news")
+def get_live_news(query: str):
+    """
+    네이버 뉴스 API를 통해 실시간 뉴스 3개를 가져옵니다.
+    """
+    try:
+        # 본문 크롤링은 속도를 위해 False로 설정 (제목, 요약, 링크만 반환)
+        result = crawl_naver_news(query, display=3, sort='sim', crawl_content=False)
+        if result and 'items' in result:
+            return result['items']
+        return []
+    except Exception as e:
+        print(f"News API Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn

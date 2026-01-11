@@ -1,25 +1,31 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import './App.css';
-import DividendChart from './components/DividendChart';
-import ChatBot from './components/ChatBot';
+import Dashboard from './pages/Dashboard';
+import News from './pages/News';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Financial Agent Dashboard</h1>
-      </header>
-      <main className="App-main">
-        <div className="dashboard-container">
-          <div className="chart-section">
-            <DividendChart />
+    <Router>
+      <div className="App">
+        <header className="App-header">
+          <div className="header-content">
+            <h1>Financial Agentic Assistant</h1>
+            <nav className="header-nav">
+              <Link to="/dashboard" className="nav-link">Dashboard</Link>
+              <Link to="/news" className="nav-link">News</Link>
+            </nav>
           </div>
-          <div className="chat-section">
-            <ChatBot />
-          </div>
-        </div>
-      </main>
-    </div>
+        </header>
+        <main className="App-main">
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/news" element={<News />} />
+          </Routes>
+        </main>
+      </div>
+    </Router>
   );
 }
 

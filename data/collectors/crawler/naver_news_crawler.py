@@ -40,7 +40,7 @@ def get_news_list(keyword, display=10, start=1, sort='sim'):
     request.add_header("X-Naver-Client-Secret", CLIENT_SECRET)
     
     try:
-        response = urllib.request.urlopen(request)
+        response = urllib.request.urlopen(request, timeout=5)
         if response.getcode() == 200:
             return json.loads(response.read().decode('utf-8'))
         else:
@@ -84,34 +84,33 @@ def get_news_content(url):
         print(f"Error scraping {url}: {e}")
         return None
 
-def crawl_naver_news(keyword, display=10, sort='sim'):
+def crawl_naver_news(keyword, display=10, sort='sim', crawl_content=False):
     """
-    검색부터 본문 수집까지 전체 과정을 수행합니다.
+    네이버 뉴스 검색 및 본문 수집을 수행합니다.
+    crawl_content=True일 경우 상세 페이지 본문까지 수집합니다 (시간 소요).
     """
-    print(f"Searching news for: {keyword} (display={display}, sort={sort})...")
     search_result = get_news_list(keyword, display=display, sort=sort)
     
     if not search_result or 'items' not in search_result:
-        print("No results found.")
         return None
     
     items = search_result['items']
-    print(f"Found {len(items)} articles. Starting content crawl...")
-    
     collected_data = []
     
-    for item in tqdm(items):
-        # 네이버 뉴스 링크가 있는 경우에만 본문 수집
-        if 'n.news.naver.com' in item['link']:
+    for item in items:
+        # HTML 태그 제거 (API 응답의 제목과 요약에는 <b> 태그 등이 포함됨)
+        item['title'] = BeautifulSoup(item['title'], 'html.parser').get_text()
+        item['description'] = BeautifulSoup(item['description'], 'html.parser').get_text()
+        
+        if crawl_content and 'n.news.naver.com' in item['link']:
             content = get_news_content(item['link'])
+            item['content'] = content
             if content:
-                item['content'] = content
-                collected_data.append(item)
-                time.sleep(0.5)  # 요청 간 딜레이
+                time.sleep(0.3)
         else:
-            # 네이버 링크가 없으면 본문 없이 저장
             item['content'] = None
-            collected_data.append(item)
+            
+        collected_data.append(item)
             
     search_result['items'] = collected_data
     return search_result
