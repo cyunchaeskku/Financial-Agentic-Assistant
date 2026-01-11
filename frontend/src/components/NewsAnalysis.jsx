@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import NewsModal from './NewsModal';
 
 const NewsAnalysis = () => {
   const [query, setQuery] = useState('');
   const [newsList, setNewsList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorStatus, setErrorStatus] = useState(null);
+  const [selectedNews, setSelectedNews] = useState(null);
 
   const handleSearch = async (e) => {
     if (e) e.preventDefault();
@@ -17,7 +19,7 @@ const NewsAnalysis = () => {
 
     try {
       const response = await axios.get(`http://localhost:8000/api/news?query=${encodeURIComponent(query)}`, {
-        timeout: 7000 // 7초 타임아웃 설정
+        timeout: 15000 // 본문 크롤링 시간 고려하여 15초로 연장
       });
       
       if (response.data && response.data.length > 0) {
@@ -35,6 +37,14 @@ const NewsAnalysis = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleNewsClick = (news) => {
+    setSelectedNews(news);
+  };
+
+  const closeModal = () => {
+    setSelectedNews(null);
   };
 
   return (
@@ -57,10 +67,8 @@ const NewsAnalysis = () => {
       <div className="news-list-scrollable">
         {newsList.length > 0 ? (
           newsList.map((news, index) => (
-            <div key={index} className="news-item-card">
-              <a href={news.link} target="_blank" rel="noopener noreferrer" className="news-title">
-                {news.title}
-              </a>
+            <div key={index} className="news-item-card" onClick={() => handleNewsClick(news)}>
+              <div className="news-title">{news.title}</div>
               <p className="news-description">{news.description}</p>
               <span className="news-date">{new Date(news.pubDate).toLocaleDateString()}</span>
             </div>
@@ -68,7 +76,7 @@ const NewsAnalysis = () => {
         ) : (
           <div className="empty-news">
             {isLoading ? (
-              <div className="loading-state">기사를 불러오고 있습니다...</div>
+              <div className="loading-state">기사를 불러오고 있습니다... (본문 수집 중)</div>
             ) : (
               <div className="fallback-state">
                 {errorStatus === 'timeout' && '요청 시간이 초과되었습니다. 다시 시도해 주세요.'}
@@ -80,6 +88,9 @@ const NewsAnalysis = () => {
           </div>
         )}
       </div>
+      
+      {/* 상세 뉴스 모달 */}
+      <NewsModal news={selectedNews} onClose={closeModal} />
 
       <style jsx>{`
         .news-analysis-container {
@@ -128,21 +139,20 @@ const NewsAnalysis = () => {
           border-radius: 10px;
           background-color: #f9f9f9;
           transition: transform 0.2s;
+          cursor: pointer; /* 클릭 가능 표시 */
         }
         .news-item-card:hover {
           transform: translateY(-2px);
           box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+          background-color: #f0f8ff; /* 호버 시 색상 변경 */
+          border-color: #3498db;
         }
         .news-title {
           display: block;
           font-size: 1.1rem;
           font-weight: 600;
-          color: #2980b9;
-          text-decoration: none;
+          color: #2c3e50;
           margin-bottom: 8px;
-        }
-        .news-title:hover {
-          text-decoration: underline;
         }
         .news-description {
           font-size: 0.9rem;

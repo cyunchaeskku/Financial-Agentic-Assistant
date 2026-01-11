@@ -160,10 +160,11 @@ async def chat(request: ChatRequest):
 def get_live_news(query: str):
     """
     네이버 뉴스 API를 통해 실시간 뉴스 3개를 가져옵니다.
+    본문 내용(content)까지 수집합니다.
     """
     try:
-        # 본문 크롤링은 속도를 위해 False로 설정 (제목, 요약, 링크만 반환)
-        result = crawl_naver_news(query, display=3, sort='sim', crawl_content=False)
+        # 본문 크롤링 활성화 (crawl_content=True)
+        result = crawl_naver_news(query, display=3, sort='sim', crawl_content=True)
         if result and 'items' in result:
             return result['items']
         return []
