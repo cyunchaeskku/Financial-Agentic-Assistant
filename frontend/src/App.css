@@ -66,14 +66,35 @@
 .dashboard-container {
   display: flex;
   flex-direction: row;
-  gap: 20px;
+  gap: 20px; /* gap은 유지하되, resizer 사용 시 조정 필요할 수 있음 -> resizer 양옆에 마진을 주거나 gap을 없애고 resizer가 간격 역할을 할 수도 있음. 여기서는 gap을 없애고 resizer가 그 사이에 위치하도록 유도하거나, 단순히 gap을 유지하고 resizer를 별도로 둠.
+                하지만 flex container에서 gap이 있으면 resizer와 요소 사이에 빈 공간이 생김.
+                가장 깔끔한 건 gap을 없애고, resizer 자체가 간격(margin)을 포함하거나, padding을 주는 것임.
+                일단 gap: 0으로 수정하고, 각 섹션에 마진을 주거나 하는 게 낫지만,
+                기존 디자인을 최대한 유지하려면 gap을 10px 정도로 줄이고 resizer를 그 사이에 배치하는 게 자연스러움.
+                하지만 가장 쉬운 방법은 gap을 0으로 하고 resizer 양옆에 margin을 주는 것. */
+  gap: 0; /* Resizer 구현을 위해 gap 제거 */
   max-width: 1800px;
   margin: 0 auto;
   align-items: stretch;
 }
 
+.resizer {
+  width: 8px;
+  cursor: col-resize;
+  background-color: transparent;
+  transition: background-color 0.2s;
+  flex: none; /* 크기 고정 */
+  margin: 0 4px; /* 양옆 간격 */
+  border-radius: 4px;
+}
+
+.resizer:hover,
+.resizer:active {
+  background-color: rgba(52, 152, 219, 0.5); /* 활성화 시 파란색 틴트 */
+}
+
 .news-section {
-  flex: 7;
+  flex: 1; /* 남은 공간 모두 차지 */
   background: #f1f3f5; /* 세련된 쿨 그레이 */
   padding: 25px;
   border-radius: 12px;
@@ -93,7 +114,7 @@
 }
 
 .chat-section {
-  flex: 3; /* 챗봇 영역 30% */
+  flex: none; /* Resizer로 너비 조절하기 위해 flex 해제 */
   min-width: 350px;
   height: 790px;
   display: flex; /* 내부 자식이 높이를 채우도록 flex 적용 */

@@ -202,3 +202,19 @@
     *   **State Lifting**: `selectedNewsItems` 상태를 `Dashboard.jsx`와 `News.jsx` 상위 컴포넌트로 끌어올려 `NewsAnalysis`(선택)와 `ChatBot`(소비) 간 데이터 공유 구현.
     *   **Hidden Context Injection**: '기사 분석 모드' 활성화 시, 사용자가 선택한 기사의 **제목, 링크, 본문**을 챗봇 API 요청 메시지에 **System/User Context로 은밀하게 주입(Hidden)**하여, 화면에는 깔끔한 질문만 보여주되 LLM은 풍부한 정보를 바탕으로 답변하도록 구현.
     *   **UX 개선**: 분석 모드가 꺼져있을 때 체크박스 클릭 시 Toast 알림 제공, 기사 링크 포함 답변 생성 등 사용자 경험 강화.
+
+## [2026-01-13] - Frontend 전역 상태 관리 및 UI/UX 고도화
+
+### 1. 전역 상태 관리 도입 (React Context API)
+*   **작업 내용**: 페이지 이동 시(Dashboard ↔ News) 데이터 증발 문제를 해결하기 위해 상태 관리 구조를 컴포넌트 레벨에서 애플리케이션 레벨로 승격.
+*   **구현 상세**:
+    *   `store/FinancialContext.js`: 뉴스 검색 결과, 챗봇 대화 기록, 차트 선택 기업 등을 관리하는 전역 Context Provider 생성.
+    *   `App.js`: 최상위 컴포넌트에 Provider를 적용하여 앱 전역에서 상태 접근 허용.
+    *   **State Persistence**: 탭 이동 후에도 검색했던 기사 리스트와 챗봇 대화 내용, 차트 설정이 그대로 유지되어 사용자 경험(Seamless UX) 대폭 향상.
+
+### 2. 커스텀 Resizer 구현 (Interactive Layout)
+*   **작업 내용**: 챗봇 섹션의 너비를 사용자가 자유롭게 조절할 수 있는 드래그 핸들(Resizer) 구현.
+*   **구현 상세**:
+    *   **CSS & Flexbox**: `flex: none`과 `width` 속성을 조합하여 동적 레이아웃 기반 마련.
+    *   **Event Handling**: `mousemove`와 `mouseup` 이벤트를 활용하여 마우스 드래그에 따라 실시간으로 챗봇 영역 너비 계산 및 적용.
+    *   **Constraints**: 최소(`350px`) 및 최대(`60%`) 너비 제한을 두어 레이아웃 붕괴 방지.

@@ -1,11 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import GlassInputForm from './GlassInputForm';
+import { useFinancialContext } from '../store/FinancialContext';
 
-const ChatBot = ({ isAnalysisMode, setIsAnalysisMode, selectedNewsItems }) => {
-  const [messages, setMessages] = useState([
-    { role: 'assistant', content: '안녕하세요! 금융 데이터 분석 보조 에이전트입니다. 궁금하신 점을 물어보세요.' }
-  ]);
+const ChatBot = () => {
+  const { 
+    chatMessages, setChatMessages,
+    isAnalysisMode, setIsAnalysisMode,
+    selectedNewsItems
+  } = useFinancialContext();
+
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [dotCount, setDotCount] = useState(1);
@@ -30,7 +34,7 @@ const ChatBot = ({ isAnalysisMode, setIsAnalysisMode, selectedNewsItems }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [chatMessages]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -38,14 +42,14 @@ const ChatBot = ({ isAnalysisMode, setIsAnalysisMode, selectedNewsItems }) => {
 
     // 화면에 표시할 메시지 (순수 사용자 입력)
     const displayUserMessage = { role: 'user', content: input };
-    setMessages(prev => [...prev, displayUserMessage]);
+    setChatMessages(prev => [...prev, displayUserMessage]);
     
     setInput('');
     setIsLoading(true);
 
     try {
       // API에 전송할 메시지 목록 구성
-      let apiMessages = [...messages, displayUserMessage].map(m => ({ role: m.role, content: m.content }));
+      let apiMessages = [...chatMessages, displayUserMessage].map(m => ({ role: m.role, content: m.content }));
 
       // 분석 모드이고 선택된 기사가 있다면 컨텍스트 주입 (마지막 메시지 변형)
       if (isAnalysisMode && selectedNewsItems && selectedNewsItems.length > 0) {
@@ -58,7 +62,7 @@ const ChatBot = ({ isAnalysisMode, setIsAnalysisMode, selectedNewsItems }) => {
       }
 
       // 1. 초기 빈 메시지 추가 (스트리밍될 내용을 담을 공간)
-      setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+      setChatMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
       const response = await fetch('http://localhost:8000/api/chat', {
         method: 'POST',
@@ -82,7 +86,7 @@ const ChatBot = ({ isAnalysisMode, setIsAnalysisMode, selectedNewsItems }) => {
         const chunkValue = decoder.decode(value, { stream: true });
 
         // 실시간으로 마지막 메시지(Assistant 응답) 업데이트
-        setMessages(prev => {
+        setChatMessages(prev => {
           const newMessages = [...prev];
           const lastIndex = newMessages.length - 1;
           
@@ -98,7 +102,7 @@ const ChatBot = ({ isAnalysisMode, setIsAnalysisMode, selectedNewsItems }) => {
 
     } catch (error) {
       console.error('Chat Error:', error);
-      setMessages(prev => {
+      setChatMessages(prev => {
         const newMessages = [...prev];
         // 에러 발생 시 마지막 빈 메시지를 에러 메시지로 교체 혹은 추가
         if (newMessages[newMessages.length - 1].role === 'assistant' && newMessages[newMessages.length - 1].content === '') {
@@ -136,7 +140,7 @@ const ChatBot = ({ isAnalysisMode, setIsAnalysisMode, selectedNewsItems }) => {
         </div>
       </div>
       <div className="chatbot-messages">
-        {messages.map((msg, index) => {
+        {chatMessages.map((msg, index) => {
           // 스트리밍 시작 전(빈 메시지)인 경우 렌더링하지 않음 (로딩 버블과 중복 방지)
           if (msg.role === 'assistant' && !msg.content) return null;
           
@@ -149,8 +153,8 @@ const ChatBot = ({ isAnalysisMode, setIsAnalysisMode, selectedNewsItems }) => {
           );
         })}
         {/* 로딩 중이고, 아직 마지막 메시지(Assistant)에 내용이 들어오지 않았을 때만 로딩 버블 표시 */}
-        {isLoading && messages.length > 0 && 
-         (messages[messages.length - 1].role !== 'assistant' || !messages[messages.length - 1].content) && (
+        {isLoading && chatMessages.length > 0 && 
+         (chatMessages[chatMessages.length - 1].role !== 'assistant' || !chatMessages[chatMessages.length - 1].content) && (
           <div className="message-bubble assistant">
             <div className="message-content loading">
               답변을 생성 중입니다{'.'.repeat(dotCount)}

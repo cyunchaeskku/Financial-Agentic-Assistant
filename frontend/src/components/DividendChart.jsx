@@ -2,12 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Plot from 'react-plotly.js';
 import axios from 'axios';
 import Select from 'react-select';
+import { useFinancialContext } from '../store/FinancialContext';
 
 const DividendChart = () => {
+    const { selectedChartCorps, setSelectedChartCorps } = useFinancialContext();
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [selectedOptions, setSelectedOptions] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -19,11 +20,13 @@ const DividendChart = () => {
                 // 고유 기업 목록 추출
                 const uniqueCompanies = [...new Set(response.data.map(item => item.corp_name))];
                 
-                // 초기 선택값 설정 (예: 삼성전자)
-                if (uniqueCompanies.includes('삼성전자')) {
-                    setSelectedOptions([{ value: '삼성전자', label: '삼성전자' }]);
-                } else if (uniqueCompanies.length > 0) {
-                    setSelectedOptions([{ value: uniqueCompanies[0], label: uniqueCompanies[0] }]);
+                // 초기 선택값 설정 (전역 상태가 비어있을 때만 실행)
+                if (selectedChartCorps.length === 0) {
+                    if (uniqueCompanies.includes('삼성전자')) {
+                        setSelectedChartCorps([{ value: '삼성전자', label: '삼성전자' }]);
+                    } else if (uniqueCompanies.length > 0) {
+                        setSelectedChartCorps([{ value: uniqueCompanies[0], label: uniqueCompanies[0] }]);
+                    }
                 }
 
                 setLoading(false);
@@ -35,7 +38,7 @@ const DividendChart = () => {
         };
 
         fetchData();
-    }, []);
+    }, []); // 의존성 배열에서 selectedChartCorps 제거 (초기 로딩 시 1회만 체크)
 
     // 드롭다운 옵션 생성
     const options = useMemo(() => {
@@ -56,7 +59,7 @@ const DividendChart = () => {
     });
 
     // 2. 선택된 기업의 데이터만 필터링하여 Plotly Trace 생성
-    const selectedNames = selectedOptions ? selectedOptions.map(o => o.value) : [];
+    const selectedNames = selectedChartCorps ? selectedChartCorps.map(o => o.value) : [];
     
     const traces = selectedNames.map(company => {
         const companyData = data.filter(item => item.corp_name === company);
@@ -79,8 +82,8 @@ const DividendChart = () => {
                 <Select
                     isMulti
                     options={options}
-                    value={selectedOptions}
-                    onChange={setSelectedOptions}
+                    value={selectedChartCorps}
+                    onChange={setSelectedChartCorps}
                     placeholder="Search and select companies..."
                 />
             </div>

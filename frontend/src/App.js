@@ -3,28 +3,31 @@ import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-ro
 import './App.css';
 import Dashboard from './pages/Dashboard';
 import News from './pages/News';
+import { FinancialProvider } from './store/FinancialContext';
 
 function App() {
   return (
     <Router>
-      <div className="App">
-        <header className="App-header">
-          <div className="header-content">
-            <h1>Financial Agentic Assistant</h1>
-            <nav className="header-nav">
-              <Link to="/dashboard" className="nav-link">Dashboard</Link>
-              <Link to="/news" className="nav-link">News</Link>
-            </nav>
-          </div>
-        </header>
-        <main className="App-main">
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/news" element={<News />} />
-          </Routes>
-        </main>
-      </div>
+      <FinancialProvider>
+        <div className="App">
+          <header className="App-header">
+            <div className="header-content">
+              <h1>Financial Agentic Assistant</h1>
+              <nav className="header-nav">
+                <Link to="/dashboard" className="nav-link">Dashboard</Link>
+                <Link to="/news" className="nav-link">News</Link>
+              </nav>
+            </div>
+          </header>
+          <main className="App-main">
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/news" element={<News />} />
+            </Routes>
+          </main>
+        </div>
+      </FinancialProvider>
     </Router>
   );
 }

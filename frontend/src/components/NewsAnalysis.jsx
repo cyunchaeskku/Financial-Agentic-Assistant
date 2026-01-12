@@ -2,10 +2,16 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import NewsModal from './NewsModal';
 import GlassInputForm from './GlassInputForm';
+import { useFinancialContext } from '../store/FinancialContext';
 
-const NewsAnalysis = ({ isAnalysisMode, selectedNewsItems, setSelectedNewsItems }) => {
-  const [query, setQuery] = useState('');
-  const [newsList, setNewsList] = useState([]);
+const NewsAnalysis = () => {
+  const { 
+    newsQuery, setNewsQuery, 
+    newsList, setNewsList, 
+    selectedNewsItems, setSelectedNewsItems,
+    isAnalysisMode
+  } = useFinancialContext();
+
   const [isLoading, setIsLoading] = useState(false);
   const [errorStatus, setErrorStatus] = useState(null);
   const [selectedNews, setSelectedNews] = useState(null);
@@ -23,7 +29,7 @@ const NewsAnalysis = ({ isAnalysisMode, selectedNewsItems, setSelectedNewsItems 
 
   const handleSearch = async (e) => {
     if (e) e.preventDefault();
-    if (!query.trim() || isLoading) return;
+    if (!newsQuery.trim() || isLoading) return;
 
     setIsLoading(true);
     setErrorStatus(null);
@@ -32,7 +38,7 @@ const NewsAnalysis = ({ isAnalysisMode, selectedNewsItems, setSelectedNewsItems 
     if (setSelectedNewsItems) setSelectedNewsItems([]);
 
     try {
-      const response = await axios.get(`http://localhost:8000/api/news?query=${encodeURIComponent(query)}`, {
+      const response = await axios.get(`http://localhost:8000/api/news?query=${encodeURIComponent(newsQuery)}`, {
         timeout: 15000 
       });
       
@@ -88,8 +94,8 @@ const NewsAnalysis = ({ isAnalysisMode, selectedNewsItems, setSelectedNewsItems 
     <div className="news-analysis-container">
       <div className="search-bar-container">
         <GlassInputForm
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          value={newsQuery}
+          onChange={(e) => setNewsQuery(e.target.value)}
           onSubmit={handleSearch}
           placeholder="분석할 기업명을 입력하세요."
           disabled={isLoading}
@@ -128,7 +134,7 @@ const NewsAnalysis = ({ isAnalysisMode, selectedNewsItems, setSelectedNewsItems 
             ) : (
               <div className="fallback-state">
                 {errorStatus === 'timeout' && '요청 시간이 초과되었습니다. 다시 시도해 주세요.'}
-                {errorStatus === 'search_empty' && `'${query}'에 대한 최신 뉴스가 없습니다.`}
+                {errorStatus === 'search_empty' && `'${newsQuery}'에 대한 최신 뉴스가 없습니다.`}
                 {errorStatus === 'error' && '뉴스 검색 중 오류가 발생했습니다.'}
                 {!errorStatus && '검색어를 입력하고 확인 버튼을 눌러주세요.'}
               </div>
