@@ -187,3 +187,18 @@
 ### 3. 스트리밍 UX 및 로딩 애니메이션 고도화
 *   **중복 버블 이슈 해결**: 스트리밍 첫 청크 수신 여부에 따라 '로딩 상태'와 '실제 답변' 버블이 유기적으로 전환되도록 조건부 렌더링 로직 개선.
 *   **Dynamic Loading Indicator**: `useEffect`와 `setInterval`을 활용하여 '답변을 생성 중입니다' 뒤의 점(`.`) 개수가 1~3개로 순환하는 애니메이션 구현.
+
+## [2026-01-13] - 기사 분석 챗봇 기능 고도화 (LangChain Integration)
+
+### 1. Backend Refactoring (LangChain 도입)
+*   **작업 내용**: 기존 원시 OpenAI Client 코드를 `LangChain` 프레임워크 기반으로 전면 리팩토링.
+*   **구현 상세**:
+    *   **구조적 프롬프트 관리**: `ChatPromptTemplate`을 도입하여 System Message와 User History를 명확히 분리, 에이전트의 역할(Persona)과 컨텍스트 주입 효율성 증대.
+    *   **스트리밍 표준화**: `chain.astream`을 사용하여 비동기 스트리밍 응답 구조를 표준화하고 확장성(Tool 호출 등) 확보.
+
+### 2. Frontend State Management 개선 (Context Injection)
+*   **작업 내용**: 사용자가 선택한 뉴스를 LLM의 분석 컨텍스트로 주입하기 위한 상태 관리 구조 개선.
+*   **구현 상세**:
+    *   **State Lifting**: `selectedNewsItems` 상태를 `Dashboard.jsx`와 `News.jsx` 상위 컴포넌트로 끌어올려 `NewsAnalysis`(선택)와 `ChatBot`(소비) 간 데이터 공유 구현.
+    *   **Hidden Context Injection**: '기사 분석 모드' 활성화 시, 사용자가 선택한 기사의 **제목, 링크, 본문**을 챗봇 API 요청 메시지에 **System/User Context로 은밀하게 주입(Hidden)**하여, 화면에는 깔끔한 질문만 보여주되 LLM은 풍부한 정보를 바탕으로 답변하도록 구현.
+    *   **UX 개선**: 분석 모드가 꺼져있을 때 체크박스 클릭 시 Toast 알림 제공, 기사 링크 포함 답변 생성 등 사용자 경험 강화.

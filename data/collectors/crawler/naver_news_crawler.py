@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import os
 import sys
 import urllib.request
@@ -50,6 +49,19 @@ def get_news_list(keyword, display=10, start=1, sort='sim'):
         print(f"Error during API request: {e}")
         return None
 
+def check_is_excluded_domain(url):
+    """
+    해당 URL이 금융 정보 에이전트에서 배제해야 할 도메인(스포츠, 연예)인지 확인합니다.
+    """
+    excluded_domains = [
+        'sports.news.naver.com',
+        'm.sports.naver.com',
+        'entertain.naver.com',
+        'm.entertain.naver.com',
+        'sports.naver.com'
+    ]
+    return any(domain in url for domain in excluded_domains)
+
 def get_news_content(url):
     """
     네이버 뉴스 상세 페이지에서 본문 내용을 추출합니다.
@@ -65,20 +77,26 @@ def get_news_content(url):
             
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # 네이버 뉴스 본문 selector
-        content_element = soup.select_one('#dic_area')
-        if not content_element:
-            content_element = soup.select_one('#newsct_article')
-        if not content_element:
-            content_element = soup.select_one('#articeBody')
+        # 금융/경제 뉴스 본문에 주로 사용되는 selector
+        selectors = [
+            '#dic_area',           # 일반 뉴스 (최신)
+            '#newsct_article',     # 일반 뉴스 (구형)
+            '#articleBodyContents', # 경제/사회 구형
+            '.news_end'            # 일부 경제지
+        ]
+        
+        content_element = None
+        for selector in selectors:
+            content_element = soup.select_one(selector)
+            if content_element:
+                break
             
         if content_element:
             # 불필요한 태그 제거
-            for tag in content_element.select('.img_desc, .end_photo_org, script, style'):
+            for tag in content_element.select('.img_desc, .end_photo_org, script, style, .reporter_area, .copyright, .byline'):
                 tag.decompose()
             return content_element.get_text(strip=True)
-        else:
-            return None
+        return None
             
     except Exception as e:
         print(f"Error scraping {url}: {e}")
@@ -87,7 +105,7 @@ def get_news_content(url):
 def crawl_naver_news(keyword, display=10, sort='sim', crawl_content=False):
     """
     네이버 뉴스 검색 및 본문 수집을 수행합니다.
-    crawl_content=True일 경우 상세 페이지 본문까지 수집합니다 (시간 소요).
+    배제 도메인을 필터링합니다.
     """
     search_result = get_news_list(keyword, display=display, sort=sort)
     
@@ -98,15 +116,27 @@ def crawl_naver_news(keyword, display=10, sort='sim', crawl_content=False):
     collected_data = []
     
     for item in items:
-        # HTML 태그 제거 (API 응답의 제목과 요약에는 <b> 태그 등이 포함됨)
+        # 배제 도메인 체크 (link와 originallink 모두 검사)
+        is_excluded = check_is_excluded_domain(item['link'])
+        if not is_excluded and 'originallink' in item:
+            is_excluded = check_is_excluded_domain(item['originallink'])
+            
+        if is_excluded:
+            continue # 스포츠/연예 뉴스는 건너뜀
+
+        # HTML 태그 제거
         item['title'] = BeautifulSoup(item['title'], 'html.parser').get_text()
         item['description'] = BeautifulSoup(item['description'], 'html.parser').get_text()
         
-        if crawl_content and 'n.news.naver.com' in item['link']:
-            content = get_news_content(item['link'])
+        # 네이버 뉴스 도메인인 경우에만 크롤링 시도 (성공률과 속도 고려)
+        target_url = item['link']
+        can_crawl = 'news.naver.com' in target_url or 'n.news.naver.com' in target_url
+        
+        if crawl_content and can_crawl:
+            content = get_news_content(target_url)
             item['content'] = content
             if content:
-                time.sleep(0.3)
+                time.sleep(0.1)
         else:
             item['content'] = None
             

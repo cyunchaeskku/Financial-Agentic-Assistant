@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+import GlassInputForm from './GlassInputForm';
 
-const ChatBot = () => {
+const ChatBot = ({ isAnalysisMode, setIsAnalysisMode, selectedNewsItems }) => {
   const [messages, setMessages] = useState([
     { role: 'assistant', content: '안녕하세요! 금융 데이터 분석 보조 에이전트입니다. 궁금하신 점을 물어보세요.' }
   ]);
@@ -35,12 +36,27 @@ const ChatBot = () => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    const userMessage = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMessage]);
+    // 화면에 표시할 메시지 (순수 사용자 입력)
+    const displayUserMessage = { role: 'user', content: input };
+    setMessages(prev => [...prev, displayUserMessage]);
+    
     setInput('');
     setIsLoading(true);
 
     try {
+      // API에 전송할 메시지 목록 구성
+      let apiMessages = [...messages, displayUserMessage].map(m => ({ role: m.role, content: m.content }));
+
+      // 분석 모드이고 선택된 기사가 있다면 컨텍스트 주입 (마지막 메시지 변형)
+      if (isAnalysisMode && selectedNewsItems && selectedNewsItems.length > 0) {
+        const contextString = selectedNewsItems.map((news, idx) => (
+          `[기사 ${idx + 1}]\n제목: ${news.title}\n링크: ${news.link}\n내용: ${news.content || news.description || '내용 없음'}\n`
+        )).join('\n');
+
+        const lastMsgIndex = apiMessages.length - 1;
+        apiMessages[lastMsgIndex].content = `[참고 자료]\n${contextString}\n\n[질문]\n${input}`;
+      }
+
       // 1. 초기 빈 메시지 추가 (스트리밍될 내용을 담을 공간)
       setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
@@ -50,7 +66,7 @@ const ChatBot = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: [...messages, userMessage].map(m => ({ role: m.role, content: m.content }))
+          messages: apiMessages
         }),
       });
 
@@ -101,6 +117,23 @@ const ChatBot = () => {
     <div className="chatbot-container">
       <div className="chatbot-header">
         <h3>AI Financial Assistant</h3>
+        <div className="analysis-toggle-container">
+          <div className="label-with-tooltip">
+            <span className="analysis-toggle-label">기사 분석 모드</span>
+            <div className="tooltip-container">
+              <span className="info-icon">?</span>
+              <span className="tooltip-text">검색된 기사 내용을 분석 문맥에 포함합니다.</span>
+            </div>
+          </div>
+          <label className="switch">
+            <input 
+              type="checkbox" 
+              checked={isAnalysisMode}
+              onChange={() => setIsAnalysisMode(!isAnalysisMode)}
+            />
+            <span className="slider"></span>
+          </label>
+        </div>
       </div>
       <div className="chatbot-messages">
         {messages.map((msg, index) => {
@@ -126,18 +159,17 @@ const ChatBot = () => {
         )}
         <div ref={messagesEndRef} />
       </div>
-      <form className="chatbot-input-form" onSubmit={handleSendMessage}>
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="질문을 입력하세요..."
-          disabled={isLoading}
-        />
-        <button type="submit" disabled={isLoading || !input.trim()}>
-          전송
-        </button>
-      </form>
+      
+      <GlassInputForm
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onSubmit={handleSendMessage}
+        placeholder="질문을 입력하세요..."
+        disabled={isLoading}
+        isSubmitDisabled={!input.trim()}
+        buttonText="전송"
+        className="chatbot-bottom-fixed"
+      />
       
       {/* Liquid Glass SVG Filter Definition */}
       <svg style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }}>

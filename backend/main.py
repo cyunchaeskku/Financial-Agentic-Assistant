@@ -9,7 +9,11 @@ import sys
 from typing import List, Optional
 from dotenv import load_dotenv
 from pydantic import BaseModel
-from openai import OpenAI
+
+# LangChain Imports
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
 # Add project root to sys.path to import modules from 'data'
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -20,9 +24,6 @@ env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
 load_dotenv(dotenv_path=env_path)
 
 app = FastAPI(title="Financial Agent API")
-
-# OpenAI Client Initialization
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 class ChatMessage(BaseModel):
     role: str
@@ -138,33 +139,70 @@ def get_dividends(corp_code: Optional[str] = None, stock_knd: str = "보통주")
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
     """
-    OpenAI API를 사용하여 챗봇 응답을 스트리밍으로 생성합니다.
+    LangChain을 사용하여 챗봇 응답을 스트리밍으로 생성합니다.
+    System Prompt와 User History를 체계적으로 관리합니다.
     """
-    def generate():
+    # LangChain Chat Model 초기화
+    llm = ChatOpenAI(
+        model="gpt-4o-mini",
+        streaming=True,
+        api_key=os.getenv("OPENAI_API_KEY")
+    )
+
+    # Prompt Template 정의
+    prompt = ChatPromptTemplate.from_messages([
+        ("system",
+        "당신은 전문적인 금융 분석 보조 에이전트입니다.\n"
+        "사용자에게 정확하고 신뢰할 수 있는 금융 정보를 제공하세요.\n"
+        "제공된 기사나 데이터가 있다면 이를 기반으로 얻을 수 있는 인사이트를 추출하고 답변하세요.\n"
+        "'기사 출처: 링크'의 형태로 출처를 밝히세요\n"),
+        MessagesPlaceholder(variable_name="history"),
+    ])
+
+    # 메시지 변환 (Pydantic -> LangChain)
+    history = []
+    for m in request.messages:
+        if m.role == "user":
+            history.append(HumanMessage(content=m.content))
+        elif m.role == "assistant":
+            history.append(AIMessage(content=m.content))
+        elif m.role == "system":
+            # 클라이언트에서 시스템 메시지를 보낼 경우 처리 (선택 사항)
+            history.append(SystemMessage(content=m.content))
+
+    # Chain 생성
+    chain = prompt | llm
+
+    async def generate():
         try:
-            stream = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{"role": m.role, "content": m.content} for m in request.messages],
-                stream=True
-            )
-            for chunk in stream:
-                if chunk.choices[0].delta.content is not None:
-                    yield chunk.choices[0].delta.content
+            # LangChain astream을 사용하여 스트리밍
+            async for chunk in chain.astream({"history": history}):
+                if chunk.content:
+                    yield chunk.content
         except Exception as e:
             print(f"Chat Stream Error: {e}")
             yield f"Error: {str(e)}"
 
     return StreamingResponse(generate(), media_type="text/event-stream")
 
+# Financial keywords for query augmentation
+FINANCIAL_KEYWORDS = ["주가", "실적", "공시", "배당", "증권", "투자", "매출", "영업이익", "수주", "이익"]
+
 @app.get("/api/news")
 def get_live_news(query: str):
     """
     네이버 뉴스 API를 통해 실시간 뉴스 3개를 가져옵니다.
-    본문 내용(content)까지 수집합니다.
+    금융 관련 키워드를 자동으로 추가하여 정확도를 높이고 유사도순(sim)으로 정렬합니다.
     """
     try:
-        # 본문 크롤링 활성화 (crawl_content=True)
-        result = crawl_naver_news(query, display=3, sort='sim', crawl_content=True)
+        # Query Augmentation: (query) AND (keyword1 | keyword2 | ...)
+        keyword_part = " | ".join(FINANCIAL_KEYWORDS)
+        augmented_query = f"{query} ({keyword_part})"
+        
+        # 본문 크롤링 활성화 및 유사도순(sim) 정렬 유지
+        # 처음부터 3개만 요청하여 결과 반환
+        result = crawl_naver_news(augmented_query, display=3, sort='sim', crawl_content=True)
+        
         if result and 'items' in result:
             return result['items']
         return []
