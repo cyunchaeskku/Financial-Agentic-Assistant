@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 
 const ChatBot = () => {
   const [messages, setMessages] = useState([
@@ -6,7 +7,21 @@ const ChatBot = () => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [dotCount, setDotCount] = useState(1);
   const messagesEndRef = useRef(null);
+
+  // 로딩 중 점 애니메이션 효과
+  useEffect(() => {
+    let interval;
+    if (isLoading) {
+      interval = setInterval(() => {
+        setDotCount(prev => (prev % 3) + 1);
+      }, 500);
+    } else {
+      setDotCount(1);
+    }
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -88,14 +103,25 @@ const ChatBot = () => {
         <h3>AI Financial Assistant</h3>
       </div>
       <div className="chatbot-messages">
-        {messages.map((msg, index) => (
-          <div key={index} className={`message-bubble ${msg.role}`}>
-            <div className="message-content">{msg.content}</div>
-          </div>
-        ))}
-        {isLoading && (
+        {messages.map((msg, index) => {
+          // 스트리밍 시작 전(빈 메시지)인 경우 렌더링하지 않음 (로딩 버블과 중복 방지)
+          if (msg.role === 'assistant' && !msg.content) return null;
+          
+          return (
+            <div key={index} className={`message-bubble ${msg.role}`}>
+              <div className="message-content">
+                <ReactMarkdown>{msg.content}</ReactMarkdown>
+              </div>
+            </div>
+          );
+        })}
+        {/* 로딩 중이고, 아직 마지막 메시지(Assistant)에 내용이 들어오지 않았을 때만 로딩 버블 표시 */}
+        {isLoading && messages.length > 0 && 
+         (messages[messages.length - 1].role !== 'assistant' || !messages[messages.length - 1].content) && (
           <div className="message-bubble assistant">
-            <div className="message-content loading">답변을 생성 중입니다...</div>
+            <div className="message-content loading">
+              답변을 생성 중입니다{'.'.repeat(dotCount)}
+            </div>
           </div>
         )}
         <div ref={messagesEndRef} />
@@ -112,6 +138,35 @@ const ChatBot = () => {
           전송
         </button>
       </form>
+      
+      {/* Liquid Glass SVG Filter Definition */}
+      <svg style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }}>
+        <defs>
+          <filter id="liquid-glass-filter">
+            {/* 1. 부드러운 유동적 노이즈 생성 (물결 느낌) */}
+            <feTurbulence 
+              type="fractalNoise" 
+              baseFrequency="0.015" 
+              numOctaves="3" 
+              result="fluidNoise" 
+            />
+            {/* 2. 노이즈를 약간 흐리게 하여 거친 느낌 제거 */}
+            <feGaussianBlur 
+              in="fluidNoise" 
+              stdDeviation="2" 
+              result="smoothNoise" 
+            />
+            {/* 3. 배경 이미지(SourceGraphic)를 노이즈 맵(smoothNoise)에 따라 굴절시킴 */}
+            <feDisplacementMap 
+              in="SourceGraphic" 
+              in2="smoothNoise" 
+              scale="30" 
+              xChannelSelector="R" 
+              yChannelSelector="G" 
+            />
+          </filter>
+        </defs>
+      </svg>
     </div>
   );
 };

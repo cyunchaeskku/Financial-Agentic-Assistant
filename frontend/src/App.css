@@ -92,13 +92,15 @@
 /* ChatBot Styles */
 .chatbot-container {
   width: 100%;
-  border: 1px solid #e0e0e0;
+  border: 1px solid rgba(224, 224, 224, 0.5);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
   height: 100%; /* 부모 높이 100% 사용 */
   background-color: #ffffff;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+  position: relative; /* 입력창 배치를 위해 relative 추가 */
+  overflow: hidden;
 }
 
 .chatbot-header {
@@ -107,6 +109,7 @@
   color: white;
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
+  z-index: 11;
 }
 
 .chatbot-header h3 {
@@ -118,9 +121,18 @@
   flex: 1;
   overflow-y: auto;
   padding: 20px;
+  padding-bottom: 90px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  /* 굴절 효과가 잘 보이도록 배경에 다채로운 그라데이션 패턴 추가 */
+  background-color: #f8f9fa;
+  background-image: 
+    radial-gradient(at 10% 10%, rgba(52, 152, 219, 0.2) 0px, transparent 50%),
+    radial-gradient(at 90% 10%, rgba(155, 89, 182, 0.2) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(46, 204, 113, 0.15) 0px, transparent 50%),
+    radial-gradient(at 80% 90%, rgba(241, 196, 15, 0.2) 0px, transparent 50%);
+  background-attachment: local; /* 스크롤 시 배경도 함께 움직이도록 */
 }
 
 .message-bubble {
@@ -129,7 +141,8 @@
   border-radius: 18px;
   font-size: 0.95rem;
   line-height: 1.4;
-  text-align: left; /* 텍스트 정렬을 왼쪽으로 고정 */
+  text-align: left;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
 }
 
 .message-bubble.user {
@@ -141,50 +154,128 @@
 
 .message-bubble.assistant {
   align-self: flex-start;
-  background-color: #f1f0f0;
-  color: #333;
+  /* Liquid Glass Effect - Transparency increased */
+  background: rgba(255, 255, 255, 0.15); 
+  backdrop-filter: url(#liquid-glass-filter) blur(2px);
+  -webkit-backdrop-filter: url(#liquid-glass-filter) blur(2px);
+  color: #2c3e50;
   border-bottom-left-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.03),
+    inset 0 0 15px rgba(255, 255, 255, 0.3);
 }
 
-.message-content.loading {
-  font-style: italic;
-  color: #888;
+.message-content {
+  word-break: break-word; /* 구형 브라우저 호환 */
+  overflow-wrap: anywhere; /* 긴 URL 등 강제 줄바꿈 */
+}
+
+/* ReactMarkdown 스타일 보정 */
+.message-content p {
+  margin: 0;
+}
+
+.message-content p + p {
+  margin-top: 10px;
+}
+
+.message-content ul, 
+.message-content ol {
+  margin: 5px 0;
+  padding-left: 20px;
+}
+
+.message-content li {
+  margin-bottom: 4px;
+}
+
+.message-content strong {
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.message-bubble.user .message-content strong {
+  color: white;
+}
+
+.message-content pre {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 10px;
+  border-radius: 8px;
+  overflow-x: auto; /* 코드 블록 스크롤 허용 */
+  white-space: pre-wrap; /* 코드 줄바꿈 허용 */
+  word-break: break-all;
+  margin: 10px 0;
+}
+
+.message-content code {
+  font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+  font-size: 0.9em;
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.message-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin-top: 10px;
 }
 
 .chatbot-input-form {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   display: flex;
   padding: 15px;
-  border-top: 1px solid #eee;
   gap: 10px;
+  /* More Transparent Glassmorphism */
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 -5px 30px rgba(0, 0, 0, 0.05);
+  z-index: 10;
 }
 
 .chatbot-input-form input {
   flex: 1;
   padding: 10px 15px;
-  border: 1px solid #ddd;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 20px;
   outline: none;
+  transition: all 0.3s ease;
 }
 
 .chatbot-input-form input:focus {
-  border-color: #3498db;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(52, 152, 219, 0.5);
+  box-shadow: 0 0 10px rgba(52, 152, 219, 0.1);
 }
 
 .chatbot-input-form button {
   padding: 8px 20px;
-  background-color: #3498db;
+  background-color: rgba(52, 152, 219, 0.85);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   color: white;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
 }
 
-.chatbot-input-form button:hover {
+.chatbot-input-form button:hover:not(:disabled) {
   background-color: #2980b9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
 }
 
 .chatbot-input-form button:disabled {
-  background-color: #bdc3c7;
+  background-color: rgba(189, 195, 199, 0.5);
   cursor: not-allowed;
 }
