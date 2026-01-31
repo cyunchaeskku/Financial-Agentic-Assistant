@@ -106,37 +106,78 @@ def search_corps(query: str):
         print(f"DB Search Error: {e}")
         return []
 
+import httpx
+import asyncio
+
+# ... (기존 import)
+
 @app.get("/api/financial_statements")
-def get_financial_statements(corp_code: str, bsns_year: str = "2024"):
+async def get_financial_statements(corp_code: str, start_year: str = "2023", end_year: str = "2024"):
     """
-    DART API를 통해 특정 기업의 3개년 주요 계정 데이터를 실시간으로 가져옵니다.
+    DART API를 통해 특정 기간(start_year ~ end_year)의 모든 분기별 재무 데이터를 병렬로 수집합니다.
     """
     api_key = os.getenv("DART_API_KEY")
     if not api_key:
         raise HTTPException(status_code=500, detail="DART API KEY not configured")
 
-    # 단일회사 주요계정 조회 (fnlttSinglAcnt)
-    # 이 API는 thstrm, frmtrm, bfefrmtrm (당기, 전기, 전전기) 데이터를 한 번에 제공함
     url = "https://opendart.fss.or.kr/api/fnlttSinglAcnt.json"
-    params = {
-        "crtfc_key": api_key,
-        "corp_code": corp_code,
-        "bsns_year": bsns_year,
-        "reprt_code": "11011"  # 사업보고서
-    }
+    
+    # 보고서 코드 매핑 (1Q, 2Q, 3Q, 4Q)
+    # 1분기: 11013, 반기: 11012, 3분기: 11014, 사업보고서: 11011
+    reprt_codes = [
+        ("11013", "1Q"), 
+        ("11012", "2Q"), 
+        ("11014", "3Q"), 
+        ("11011", "4Q")
+    ]
 
+    tasks = []
+    years = range(int(start_year), int(end_year) + 1)
+
+    async with httpx.AsyncClient() as client:
+        for year in years:
+            for code, q_name in reprt_codes:
+                params = {
+                    "crtfc_key": api_key,
+                    "corp_code": corp_code,
+                    "bsns_year": str(year),
+                    "reprt_code": code
+                }
+                # 각 요청을 비동기 태스크로 생성
+                tasks.append(fetch_dart_data(client, url, params, str(year), q_name))
+        
+        # 병렬 실행
+        results = await asyncio.gather(*tasks)
+
+    # 결과 필터링 및 평탄화 (Flatten)
+    # 에러가 있거나 데이터가 없는 분기는 제외, 유효한 데이터만 하나의 리스트로 합침
+    all_data = []
+    for res in results:
+        if res and res.get('status') == '000' and 'list' in res:
+            # 각 데이터 항목에 'period_name' (예: 2023.1Q) 필드 추가
+            year = res['year']
+            quarter = res['quarter']
+            for item in res['list']:
+                item['period_name'] = f"{year}.{quarter}"
+                # 정렬을 위한 정수형 키 추가 (20231, 20232...)
+                item['sort_key'] = int(f"{year}{quarter[0]}") 
+                all_data.append(item)
+
+    # 시간순 정렬
+    all_data.sort(key=lambda x: x['sort_key'])
+
+    return {"status": "000", "message": "정상", "list": all_data}
+
+async def fetch_dart_data(client, url, params, year, quarter):
     try:
-        response = requests.get(url, params=params)
+        response = await client.get(url, params=params)
         data = response.json()
-
-        if data.get("status") != "000":
-            # 데이터가 없는 경우 에러 메시지 반환
-            return {"status": data.get("status"), "message": data.get("message"), "list": []}
-            
+        data['year'] = year
+        data['quarter'] = quarter
         return data
     except Exception as e:
-        print(f"DART API Error: {e}")
-        raise HTTPException(status_code=500, detail="Failed to fetch data from DART")
+        print(f"Error fetching {year} {quarter}: {e}")
+        return None
 
 # ... (기존 API들 유지)
 

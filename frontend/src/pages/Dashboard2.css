@@ -1,0 +1,403 @@
+/* Dashboard2.css */
+
+/* --- Container & Header --- */
+.fs-analysis-container {
+    padding: 20px;
+    max-width: 1600px;
+    margin: 0 auto;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #2c3e50;
+}
+
+.fs-header-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 40px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 20px;
+}
+
+.title-display-group {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.fs-page-title {
+    margin: 0;
+    font-size: 1.8rem;
+    color: #2c3e50;
+    font-weight: 700;
+}
+
+.title-separator {
+    font-size: 1.8rem;
+    color: #bdc3c7;
+    font-weight: 300;
+}
+
+.analyzing-corp-name {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #3498db;
+    letter-spacing: -0.02em;
+}
+
+/* --- Date Filter --- */
+.date-filter-container {
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    padding: 8px 15px;
+    border-radius: 12px;
+    width: fit-content;
+    border: 1px solid #eee;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+}
+
+.filter-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-right: 5px;
+}
+
+.year-select {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    font-size: 0.9rem;
+    color: #334155;
+    outline: none;
+    cursor: pointer;
+    background-color: white;
+}
+
+.year-separator {
+    color: #94a3b8;
+}
+
+.btn-search {
+    padding: 6px 18px;
+    background: #334155;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.btn-search:hover {
+    background: #1e293b;
+}
+
+/* --- Search Bar --- */
+.corp-search-wrapper {
+    position: relative;
+    width: 400px;
+}
+
+.search-input-box {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.corp-search-input {
+    width: 100%;
+    padding: 12px 18px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    font-size: 0.95rem;
+    outline: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    background: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s;
+}
+
+.corp-search-input:focus {
+    border-color: #3498db;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.15);
+    background: #fff;
+}
+
+.suggestions-list {
+    position: absolute;
+    top: 55px;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    z-index: 2000;
+    max-height: 250px;
+    overflow-y: auto;
+    list-style: none;
+    padding: 5px 0;
+    margin: 0;
+}
+
+.suggestion-item {
+    padding: 10px 20px;
+    cursor: pointer;
+    border-bottom: 1px solid #f9f9f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+}
+
+.suggestion-item:hover {
+    background-color: #f0f7ff;
+}
+
+.suggestion-name {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.suggestion-code {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+/* --- Loading & Error --- */
+.loading-container {
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.loader {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+.loading-text {
+    margin-top: 20px;
+    color: #666;
+}
+
+.error-container {
+    padding: 40px;
+    background: #fff0f0;
+    border: 1px solid #ffc0c0;
+    border-radius: 12px;
+    text-align: center;
+    color: #c00;
+}
+
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* --- Charts Grid --- */
+.charts-grid-wrapper {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 40px;
+}
+
+.mini-chart-card {
+    background: white;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid #eee;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    height: 250px;
+}
+
+.chart-title {
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+    font-size: 0.95rem;
+    padding-left: 8px;
+    /* Border color is set inline dynamically */
+}
+
+.chart-unit {
+    color: #999;
+    font-size: 0.8em;
+    font-weight: normal;
+}
+
+/* --- AI Analysis Section --- */
+.ai-analysis-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    margin: 40px 0;
+}
+
+.btn-analyze {
+    padding: 12px 35px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
+    font-size: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-analyze:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(118, 75, 162, 0.4);
+}
+
+.report-paper-card {
+    width: 100%;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    overflow: hidden;
+    position: relative;
+}
+
+.report-paper-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.report-header {
+    padding: 20px 30px;
+    background: #f8fafc;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.report-header-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.btn-export {
+    padding: 6px 15px;
+    border: 1px solid #cbd5e1;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+    transition: all 0.2s;
+}
+
+.btn-export:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+.report-body {
+    padding: 30px;
+    min-height: 200px;
+}
+
+/* Skeleton Loading */
+.analysis-loading {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: pulse 2s infinite;
+}
+
+.skeleton-line {
+    height: 12px;
+    background: #e2e8f0;
+    border-radius: 4px;
+}
+
+.skeleton-line.title { height: 20px; width: 40%; }
+.skeleton-line.short { width: 70%; }
+
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+/* Markdown Content */
+.markdown-content {
+    line-height: 1.7;
+    color: #334155;
+}
+
+.markdown-content h1 { font-size: 1.6rem; margin-top: 0.5em; margin-bottom: 0.8em; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+.markdown-content h2 { font-size: 1.3rem; margin-top: 1.5em; margin-bottom: 0.6em; color: #334155; border-left: 4px solid #667eea; padding-left: 12px; }
+.markdown-content h3 { font-size: 1.1rem; margin-top: 1.2em; margin-bottom: 0.5em; color: #475569; }
+.markdown-content table { width: 100%; border-collapse: collapse; margin: 1.5em 0; border: 1px solid #e2e8f0; }
+.markdown-content th { background: #f8fafc; font-weight: 600; border: 1px solid #e2e8f0; padding: 10px 15px; text-align: left; }
+.markdown-content td { border: 1px solid #e2e8f0; padding: 10px 15px; }
+
+/* --- Raw Data Summary --- */
+.fs-table-section {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #eee;
+    marginBottom: 50px;
+}
+
+.table-title {
+    margin-bottom: 20px;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    max-height: 500px;
+}
+
+.fs-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.fs-table thead {
+    position: sticky;
+    top: 0;
+    background: #f8fafc;
+    z-index: 1;
+}
+
+.fs-table th {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 2px solid #eee;
+    color: #475569;
+}
+
+.fs-table th.text-right {
+    text-align: right;
+}
+
+.fs-table td {
+    padding: 12px;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.period-cell { color: #666; }
+.account-cell { font-weight: 500; }
+.amount-cell { text-align: right; font-family: monospace; color: #334155; }
