@@ -19,48 +19,126 @@ from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from data.collectors.crawler.naver_news_crawler import crawl_naver_news
 
+import json
+from pathlib import Path
+
+# ... (Previous imports)
+
 # Load environment variables from parent directory
 env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
 load_dotenv(dotenv_path=env_path)
 
 app = FastAPI(title="Financial Agent API")
 
-class ChatMessage(BaseModel):
+class Message(BaseModel):
     role: str
     content: str
 
 class ChatRequest(BaseModel):
-    messages: List[ChatMessage]
-
-# CORS configuration
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+    messages: List[Message]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Database Connection
-# Docker local default: user/password/financial_db on port 5432
-DB_USER = os.getenv("POSTGRES_USER", "user")
-DB_PASSWORD = os.getenv("POSTGRES_PASSWORD", "password")
-DB_HOST = os.getenv("POSTGRES_HOST", "localhost")
-DB_PORT = os.getenv("POSTGRES_PORT", "5432")
-DB_NAME = os.getenv("POSTGRES_DB", "financial_db")
-
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-
-engine = create_engine(DATABASE_URL)
+# Import engine from shared module
+from data.schema.db_models import engine
 
 @app.get("/")
 def read_root():
     return {"status": "ok", "message": "Financial Agent API is running"}
+
+import requests
+
+# ... (기존 코드 유지)
+
+@app.get("/api/search/corps")
+def search_corps(query: str):
+    """
+    입력된 쿼리에 맞는 기업명 목록을 추천합니다.
+    PostgreSQL DB에서 stock_code가 있는 상장사만 검색합니다.
+    """
+    if not query or len(query) < 1:
+        return []
+    
+    try:
+        # 1. SQL: 조건에 맞는 데이터를 모두 가져옵니다 (정렬은 Python에서 처리)
+        sql = text("""
+            SELECT corp_code, corp_name, stock_code 
+            FROM dart_corps 
+            WHERE stock_code IS NOT NULL 
+              AND stock_code != '' 
+              AND corp_name ILIKE :query
+        """)
+        
+        df_matches = pd.read_sql(sql, engine, params={"query": f"%{query}%"})
+        
+        if df_matches.empty:
+            return []
+
+        # 2. Python Sort: 우선순위 점수 계산 (낮을수록 상위)
+        # Priority 1: Exact Match (0)
+        # Priority 2: Starts With (1)
+        # Priority 3: Contains (2)
+        query_lower = query.lower()
+        
+        def calculate_priority(name):
+            name_lower = name.lower()
+            if name_lower == query_lower:
+                return 0
+            elif name_lower.startswith(query_lower):
+                return 1
+            else:
+                return 2
+
+        df_matches['priority'] = df_matches['corp_name'].apply(calculate_priority)
+        
+        # 3. Sort: Priority(오름차순) -> CorpName(가나다순)
+        # Python의 문자열 정렬은 유니코드 표준을 따르므로 한글 가나다순이 정확함
+        df_matches = df_matches.sort_values(by=['priority', 'corp_name'], ascending=[True, True])
+        
+        return df_matches[['corp_code', 'corp_name', 'stock_code']].to_dict(orient="records")
+    except Exception as e:
+        print(f"DB Search Error: {e}")
+        return []
+
+@app.get("/api/financial_statements")
+def get_financial_statements(corp_code: str, bsns_year: str = "2024"):
+    """
+    DART API를 통해 특정 기업의 3개년 주요 계정 데이터를 실시간으로 가져옵니다.
+    """
+    api_key = os.getenv("DART_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="DART API KEY not configured")
+
+    # 단일회사 주요계정 조회 (fnlttSinglAcnt)
+    # 이 API는 thstrm, frmtrm, bfefrmtrm (당기, 전기, 전전기) 데이터를 한 번에 제공함
+    url = "https://opendart.fss.or.kr/api/fnlttSinglAcnt.json"
+    params = {
+        "crtfc_key": api_key,
+        "corp_code": corp_code,
+        "bsns_year": bsns_year,
+        "reprt_code": "11011"  # 사업보고서
+    }
+
+    try:
+        response = requests.get(url, params=params)
+        data = response.json()
+
+        if data.get("status") != "000":
+            # 데이터가 없는 경우 에러 메시지 반환
+            return {"status": data.get("status"), "message": data.get("message"), "list": []}
+            
+        return data
+    except Exception as e:
+        print(f"DART API Error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch data from DART")
+
+# ... (기존 API들 유지)
 
 @app.get("/api/dividends")
 def get_dividends(corp_code: Optional[str] = None, stock_knd: str = "보통주"):
@@ -200,8 +278,7 @@ def get_live_news(query: str):
         augmented_query = f"{query} ({keyword_part})"
         
         # 본문 크롤링 활성화 및 유사도순(sim) 정렬 유지
-        # 처음부터 3개만 요청하여 결과 반환
-        result = crawl_naver_news(augmented_query, display=3, sort='sim', crawl_content=True)
+        result = crawl_naver_news(augmented_query, display=10, sort='sim', crawl_content=True)
         
         if result and 'items' in result:
             return result['items']

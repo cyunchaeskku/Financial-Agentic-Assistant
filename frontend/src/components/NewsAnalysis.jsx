@@ -121,8 +121,10 @@ const NewsAnalysis = () => {
                     </svg>
                   )}
                 </div>
-                <div className="news-title">{news.title}</div>
-                <p className="news-description">{news.description}</p>
+                <div className="news-content-area">
+                  <div className="news-title" dangerouslySetInnerHTML={{ __html: news.title }}></div>
+                  <p className="news-description" dangerouslySetInnerHTML={{ __html: news.description }}></p>
+                </div>
                 <span className="news-date">{new Date(news.pubDate).toLocaleDateString()}</span>
               </div>
             );
@@ -160,24 +162,27 @@ const NewsAnalysis = () => {
           height: 100%;
           width: 100%;
           position: relative; /* Toast 위치 기준점 */
+          overflow: hidden; /* 내부 스크롤만 허용 */
         }
         .search-bar-container {
+          flex: none; /* 검색창 높이 고정 */
           margin-bottom: 0;
         }
         .analysis-divider {
+          flex: none;
           height: 2px;
           background: linear-gradient(to right, rgba(0,0,0,0), rgba(0,0,0,0.12), rgba(0,0,0,0));
-          margin: 30px 0 15px 0; /* 상단 30px, 하단 15px (나머지 15px는 패딩으로 확보) */
+          margin: 30px 0 15px 0;
           width: 100%;
         }
-        /* search-form, search-input, search-button removed */
         .news-list-scrollable {
-          flex: 1;
+          flex: 1; /* 남은 높이 모두 차지 */
           overflow-y: auto;
-          padding: 15px 10px 15px 0; /* 상단 패딩 15px 부활 (카드 호버 공간 확보) */
-          display: flex;
-          flex-direction: column;
-          gap: 15px;
+          padding: 15px 10px 15px 0;
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 20px;
+          align-content: start;
         }
         .news-item-card {
           padding: 22px;
@@ -187,12 +192,20 @@ const NewsAnalysis = () => {
           box-shadow: 0 2px 10px rgba(0,0,0,0.03);
           transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
           cursor: pointer;
-          position: relative; /* 체크박스 배치를 위한 기준점 */
+          position: relative;
+          height: 260px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
         }
         .news-item-card:hover {
           transform: translateY(-5px);
           box-shadow: 0 15px 30px rgba(0,0,0,0.08);
           border-color: rgba(52, 152, 219, 0.3);
+        }
+        .news-content-area {
+          flex: 1;
+          overflow: hidden;
         }
         .news-checkbox {
           position: absolute;
@@ -218,28 +231,30 @@ const NewsAnalysis = () => {
           border-color: #e0e0e0;
           cursor: not-allowed;
           opacity: 0.6;
-          /* pointer-events: none; 제거: 클릭 이벤트를 받아야 함 */
         }
         .news-checkbox.checked {
-          background-color: #2ecc71; /* 분석 모드 스위치와 동일한 초록색 */
+          background-color: #2ecc71;
           border-color: #2ecc71;
         }
-        .checkmark {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
         .news-title {
-          display: block;
-          font-size: 1.15rem;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          font-size: 1.1rem;
           font-weight: 700;
-          color: #2d3436; /* 신뢰감을 주는 짙은 그레이 */
+          color: #2d3436;
           margin-bottom: 12px;
           line-height: 1.4;
+          padding-right: 25px; /* 체크박스와 겹치지 않게 */
         }
         .news-description {
-          font-size: 0.95rem;
-          color: #636e72; /* 차분한 본문 색상 */
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          font-size: 0.9rem;
+          color: #636e72;
           line-height: 1.6;
           margin-bottom: 15px;
         }
@@ -259,7 +274,7 @@ const NewsAnalysis = () => {
         }
         .toast-notification {
           position: absolute;
-          bottom: 20px;
+          top: 85px;
           left: 50%;
           transform: translateX(-50%);
           background-color: rgba(0, 0, 0, 0.75);
@@ -268,11 +283,11 @@ const NewsAnalysis = () => {
           border-radius: 20px;
           font-size: 0.9rem;
           z-index: 1000;
-          animation: fadeInOut 2s ease-in-out;
+          animation: fadeInOutTop 2s ease-in-out;
           pointer-events: none;
         }
-        @keyframes fadeInOut {
-          0% { opacity: 0; transform: translate(-50%, 10px); }
+        @keyframes fadeInOutTop {
+          0% { opacity: 0; transform: translate(-50%, -10px); }
           10% { opacity: 1; transform: translate(-50%, 0); }
           90% { opacity: 1; transform: translate(-50%, 0); }
           100% { opacity: 0; transform: translate(-50%, -10px); }

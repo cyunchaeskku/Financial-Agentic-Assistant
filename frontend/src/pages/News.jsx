@@ -1,10 +1,15 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import ChatBot from '../components/ChatBot';
 import NewsAnalysis from '../components/NewsAnalysis';
+import { useFinancialContext } from '../store/FinancialContext';
 
 const News = () => {
+  const { 
+    chatWidth, setChatWidth,
+    isChatCollapsed, setIsChatCollapsed
+  } = useFinancialContext();
+
   // Resizing Logic
-  const [chatWidth, setChatWidth] = useState(450); // Initial width
   const [isResizing, setIsResizing] = useState(false);
 
   const startResizing = useCallback(() => {
@@ -28,8 +33,12 @@ const News = () => {
         }
       }
     },
-    [isResizing]
+    [isResizing, setChatWidth]
   );
+
+  const toggleChatCollapse = () => {
+    setIsChatCollapsed(!isChatCollapsed);
+  };
 
   useEffect(() => {
     window.addEventListener("mousemove", resize);
@@ -47,14 +56,16 @@ const News = () => {
         <NewsAnalysis />
       </div>
       
-      {/* Resizer Handle */}
-      <div 
-        className="resizer" 
-        onMouseDown={startResizing}
-      />
+      {/* Resizer Handle - Hidden when collapsed */}
+      {!isChatCollapsed && (
+        <div 
+          className="resizer" 
+          onMouseDown={startResizing}
+        />
+      )}
 
-      <div className="chat-section" style={{ width: chatWidth }}>
-        <ChatBot />
+      <div className="chat-section" style={{ width: isChatCollapsed ? '60px' : chatWidth, minWidth: isChatCollapsed ? '0' : '380px', transition: 'width 0.3s ease' }}>
+        <ChatBot isCollapsed={isChatCollapsed} onToggleCollapse={toggleChatCollapse} />
       </div>
     </div>
   );

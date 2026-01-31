@@ -23,6 +23,7 @@ https://opendart.fss.or.kr/guide/main.do?apiGrpCd=DS001
 
 * **LLM 기반 자연어 인터페이스**를 중심으로
 * RAG(Retrieval-Augmented Generation) → Agentic Workflow로 단계적 확장
+    * **여러 RAG 기법을 사용해 RAG 고도화 진행**
 * 고객용 / 직원용 모드를 분리하여 실제 금융사 운영 환경을 모사
 
 ---

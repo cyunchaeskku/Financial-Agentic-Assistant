@@ -17,7 +17,8 @@ export const FinancialProvider = ({ children }) => {
   ]);
 
   // --- UI State (Resizing) ---
-  const [newsPageChatWidth, setNewsPageChatWidth] = useState(450);
+  const [chatWidth, setChatWidth] = useState(400);
+  const [isChatCollapsed, setIsChatCollapsed] = useState(false);
 
   // --- Chart State ---
   const [selectedChartCorps, setSelectedChartCorps] = useState([]);
@@ -28,7 +29,8 @@ export const FinancialProvider = ({ children }) => {
     selectedNewsItems, setSelectedNewsItems,
     isAnalysisMode, setIsAnalysisMode,
     chatMessages, setChatMessages,
-    newsPageChatWidth, setNewsPageChatWidth,
+    chatWidth, setChatWidth,
+    isChatCollapsed, setIsChatCollapsed,
     selectedChartCorps, setSelectedChartCorps
   };
 

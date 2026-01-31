@@ -66,12 +66,6 @@
 .dashboard-container {
   display: flex;
   flex-direction: row;
-  gap: 20px; /* gap은 유지하되, resizer 사용 시 조정 필요할 수 있음 -> resizer 양옆에 마진을 주거나 gap을 없애고 resizer가 간격 역할을 할 수도 있음. 여기서는 gap을 없애고 resizer가 그 사이에 위치하도록 유도하거나, 단순히 gap을 유지하고 resizer를 별도로 둠.
-                하지만 flex container에서 gap이 있으면 resizer와 요소 사이에 빈 공간이 생김.
-                가장 깔끔한 건 gap을 없애고, resizer 자체가 간격(margin)을 포함하거나, padding을 주는 것임.
-                일단 gap: 0으로 수정하고, 각 섹션에 마진을 주거나 하는 게 낫지만,
-                기존 디자인을 최대한 유지하려면 gap을 10px 정도로 줄이고 resizer를 그 사이에 배치하는 게 자연스러움.
-                하지만 가장 쉬운 방법은 gap을 0으로 하고 resizer 양옆에 margin을 주는 것. */
   gap: 0; /* Resizer 구현을 위해 gap 제거 */
   max-width: 1800px;
   margin: 0 auto;
@@ -99,7 +93,7 @@
   padding: 25px;
   border-radius: 12px;
   box-shadow: inset 0 2px 8px rgba(0,0,0,0.03);
-  height: 790px;
+  height: calc(100vh - 140px);
   border: 1px solid #e9ecef;
 }
 
@@ -109,14 +103,14 @@
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  height: 790px;
+  height: calc(100vh - 140px);
   border: 1px solid #eee;
 }
 
 .chat-section {
   flex: none; /* Resizer로 너비 조절하기 위해 flex 해제 */
   min-width: 350px;
-  height: 790px;
+  height: calc(100vh - 140px);
   display: flex; /* 내부 자식이 높이를 채우도록 flex 적용 */
 }
 
@@ -270,7 +264,10 @@ input:checked + .slider:before {
 
 .chatbot-header h3 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chatbot-messages {
@@ -447,4 +444,141 @@ input:checked + .slider:before {
 .glass-input-form button:disabled {
   background-color: rgba(189, 195, 199, 0.5);
   cursor: not-allowed;
+}
+
+/* FS Analysis Dashboard (Dashboard2) Styles */
+.fs-analysis-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.fs-page-title {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: left;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 15px;
+  width: fit-content;
+}
+
+.fs-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+  gap: 30px;
+  width: 100%;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.05),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  padding: 25px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08);
+}
+
+.chart-card {
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-title {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.25rem;
+  color: #34495e;
+  font-weight: 600;
+  border-left: 4px solid #3498db;
+  padding-left: 12px;
+}
+
+/* FS Table Styling */
+.fs-table-section {
+  width: 100%;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.fs-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: transparent;
+}
+
+.fs-table th,
+.fs-table td {
+  padding: 16px 24px;
+  text-align: right;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.fs-table th:first-child,
+.fs-table td:first-child {
+  text-align: left;
+  position: sticky;
+  left: 0;
+  background: inherit; /* 스크롤 시 텍스트 겹침 방지 필요시 색상 지정 */
+  z-index: 1;
+}
+/* 첫 번째 열 고정 시 배경색 지정이 필요함 glassmorphism이라 투명하면 겹쳐보임 */
+.fs-table td:first-child {
+  background-color: rgba(255, 255, 255, 0.9); 
+}
+.fs-table th:first-child {
+   background-color: #f8f9fa;
+}
+
+
+.fs-table thead tr {
+  background-color: #f8f9fa;
+  color: #2c3e50;
+}
+
+.fs-table th {
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.fs-table tbody tr {
+  transition: background-color 0.2s;
+}
+
+.fs-table tbody tr:hover {
+  background-color: rgba(52, 152, 219, 0.05);
+}
+
+.fs-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.account-name {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.amount {
+  font-family: 'Roboto Mono', monospace; /* 숫자 가독성 */
+  color: #555;
 }
